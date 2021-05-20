@@ -1,0 +1,88 @@
+1.Creating tables
+CREATE SCHEMA insurance;
+CREATE table person(
+driverid char(10),
+name char(20),
+address char(20),
+primary key(driverid)
+);
+CREATE table car(
+regnum char(10),
+model char(30),
+year int,
+primary key(regnum)
+);
+CREATE table accident(
+reportnum int,
+accdate date,
+location char(20),
+primary key(reportnum)
+);
+CREATE table owns(
+driverid char(10),
+regnum char(10),
+primary key(driverid,regnum),
+foreign key(driverid) references person(driverid),
+foreign key(regnum) references car(regnum)
+);
+CREATE table participated(
+driverid char(10),
+regnum char(10),
+reportnum int,
+damageamount int,
+primary key(driverid,regnum,reportnum),
+foreign key(driverid) references person(driverid),
+foreign key(regnum) references owns(regnum),
+foreign key(reportnum) references accident(reportnum)
+);
+2.Inserting 5 tuples into each table
+insert into person(driverid,name,address)
+values
+('A01', 'Richard', 'Srinivas nagar'),
+('A02', 'Pradeep', 'Rajajinagar'),      
+('A03', 'Smith', 'Ashoknagar'),
+('A04', 'Venu', 'N.R Colony'),
+('A05', 'John', 'Hanumanthnagar');
+INSERT INTO car (regnum, model, year) VALUES
+('KA052250', 'Indica', 1990),
+('KA031181', 'Lancer', 1957),
+('KA095477', 'Toyota', 1998),
+('KA053408', 'Honda', 2008),
+('KA041702', 'Audi', 2005);
+insert into accident(reportnum,accdate,location) values
+(0011, '2003-01-01', 'Mysore Road'),
+(0012, '2004-02-02', 'South end circle'),
+(0013, '2003-01-21','Bull temple road'),
+(0014, '2008-02-17', 'Mysore Road'),
+(0015, '2005-03-04', 'Kanakapura Road');
+INSERT INTO owns(driverid, regnum) 
+VALUES
+('A01', 'KA052250'),
+('A02', 'KA053408'),
+('A04', 'KA031181'),
+('A03', 'KA095477'),
+('A05', 'KA041702');
+INSERT INTO participated (driverid, regnum, reportnum, damageamount)
+ VALUES
+('A01', 'KA052250', 0011, 1000),
+('A02', 'KA053408', 0012, 50000),
+('A03', 'KA095477', 0013, 25000),
+('A04', 'KA031181', 0014, 3000),
+('A05', 'KA041702', 0015, 5000);
+3.Update the damage
+amount to 25000 for the car with a specific reg-num(example 'K A053408') for which the accident report
+number was 12.
+UPDATE participated 
+        set damageamount = 25000 
+         where regnum = "KA053408" AND reportnum=12;
+4.Add a new accident to the
+database.
+insert into accident values('0016','2008-02-12','Jalahalli');
+5.Find the total number of
+people who owned cars that involved in accidents in 2008.
+select count(*) from accident where accdate between '2008-01-01' and '2008-12-31';
+6.Find the number of accidents in
+which cars belonging to a specific model (example  )were involved.
+select count(*) from participated
+join car on car.regnum=participated.regnum
+where car.model='Audi';
