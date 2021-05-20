@@ -1,0 +1,82 @@
+CREATE schema banking_enterprise;
+CREATE table branch(
+branch_name varchar(30),
+branch_city varchar(30),
+assets real,
+primary key(branch_name)
+);
+create table bankaccount(
+accno int,
+branch_name varchar(30),
+balance real,
+primary key(accno),
+foreign key(branch_name) references branch(branch_name)
+);
+create table bankcustomer(
+customername varchar(30),
+customerstreet varchar(30),
+customercity varchar(30),
+primary key(customername)
+);
+create table depositer(
+customername varchar(30),
+accno int,
+primary key(customername,accno),
+foreign key(customername) references bankcustomer(customername),
+foreign key(accno) references bankaccount(accno)
+);
+create table loan(
+loannum int,
+branch_name varchar(30),
+amount real,
+foreign key(branch_name) references branch(branch_name)
+);
+insert into branch(branch_name,branch_city,assets) values
+('SBI_jayanagar','Bangalore','60000'),
+('SBI_basavangudi','Bangalore','50000'),
+('SBI_shivajinagar','Mumbai','10000'),
+('SBI_jantarmantar','Dehli','20000'),
+('SBI_parilmentroad','Dehli','30000');
+insert into bankaccount(accno,branch_name,balance) values
+('1','SBI_jayanagar','3000'),
+('2','SBI_shivajinagar','2000'),
+('3','SBI_jantarmantar','3000'),
+('4','SBI_parilmentroad','1000'),
+('5','SBI_basavangudi','4000'),
+('6','SBI_shivajinagar','1000');
+insert into bankaccount(accno,branch_name,balance) values
+('7','SBI_jayanagar','1000'),
+('8','SBI_jayanagar','3000');
+insert into bankaccount(accno,branch_name,balance) values
+('9','SBI_basavangudi','4000');
+insert into bankcustomer(customername,customerstreet,customercity) values
+('rishab','bulltempleroad','Bangalore'),
+('surabhi','highstreet','Bangalore'),
+('kunal','avenueroad','Bangalore'),
+('priyanka','akbarroad','Dehli'),
+('rohan','prithviroad','Mumbai');
+insert into depositer(customername,accno) values
+('kunal','1'),
+('surabhi','4'),
+('priyanka','6'),
+('rishab','3'),
+('rohan','5'),
+('kunal','2');
+insert into depositer(customername,accno) values
+('kunal','7');
+insert into depositer(customername,accno) values
+('kunal','9');
+insert into loan(loannum,branch_name,amount) values
+('1','SBI_jayanagar','2000'),
+('2','SBI_shivajinagar','3000'),
+('3','SBI_jantarmantar','1000'),
+('4','SBI_basavangudi','4000'),
+('5','SBI_parilmentroad','5000');
+select customername from depositer
+join bankaccount on depositer.accno=bankaccount.accno where bankaccount.branch_name='SBI_jayanagar'
+group by depositer.customername having count(depositer.customername)>=2;
+select customername from depositer
+join bankaccount on depositer.accno=bankaccount.accno 
+join branch on branch.branch_name=bankaccount.branch_name where branch.branch_city='Bangalore'
+group by depositer.customername having count(distinct branch.branch_name)=(select count(branch.branch_name) from branch where branch_city='Bangalore');
+delete from bankaccount where branch_name in(select branch_name from branch where branch_city='Dehli');
