@@ -1,0 +1,68 @@
+create schema supplier;
+create table suppliers(
+sid int,
+sname varchar(250),
+address varchar(300),
+primary key(sid)
+);
+create table parts(
+pid int,
+pname varchar(250),
+color varchar(250),
+primary key(pid)
+);
+create table catalog(
+sid int,
+pid int,
+cost real,
+foreign key(sid) references suppliers(sid),
+foreign key(pid) references parts(pid)
+);
+INSERT into suppliers(sid,sname,address) values
+('1001','johns','bangalore'),
+('1002','vimal','mumbai'),
+('1003','reliance','dehli'),
+('1004','acme widget','kolkata');
+insert into parts(pid,pname,color) values
+('2001','book','red'),
+('2002','pen','red'),
+('2003','pencil','green'),
+('2004','mobile','green'),
+('2005','charger','black');
+insert into catalog(sid,pid,cost) values
+('1001','2001','10'),
+('1001','2002','10'),
+('1001','2003','30'),
+('1001','2004','10'),
+('1001','2005','10'),
+('1002','2001','10'),
+('1002','2002','20'),
+('1003','2003','30'),
+('1004','2003','40');
+select distinct parts.pname from parts , catalog
+where parts.pid= catalog.pid;
+
+select s.sname from suppliers s 
+where s.sid in (select c.sid from catalog c group by c.sid having
+ count(distinct (c.pid))=(select count(p.pid) from parts p));
+ 
+ select s.sname from suppliers s 
+ where s.sid in (select ca.sid  from catalog ca,parts p
+ where ca.pid=p.pid and p.color='red' group by ca.sid having
+ count(ca.pid)=(select count(*) from parts p where p.color='red'));
+ 
+ select ca.pid from catalog ca  where ca.sid=(select s.sid from suppliers s 
+ where s.sname ='acme widget') 
+ having (select count(c.pid) from catalog c
+ where c.pid=ca.pid)=1;
+ 
+ select distinct c.sid,c.pid from catalog c where c.cost > (select avg(ca.cost) from catalog ca 
+ where ca.pid=c.pid);
+ 
+ select s.sname from suppliers s where s.sid in (select c.sid from catalog c 
+ where c.cost=(select max(cost) from catalog ca where ca.pid=c.pid));
+ 
+ select s.sname from suppliers s where s.sid in(select c.sid from catalog c where c.sid not in (select distinct(ca.sid) from catalog ca,parts p where ca.pid=p.pid and p.color!='red'));
+insert into catalog values(5,1,140); 
+select s.sname from suppliers s where s.sid in(select c.sid from catalog c where c.sid not in (select distinct(ca.sid) from catalog ca,parts p where ca.pid=p.pid and p.color!='red'));
+delete from catalog where sid=5;
