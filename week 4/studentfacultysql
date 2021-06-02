@@ -1,0 +1,103 @@
+create schema studentfaculty;
+
+create table student(
+snum int,
+sname varchar(200),
+major varchar(200),
+lvl varchar(200),
+age int,
+primary key(snum));
+
+create table class(
+cname varchar(200),
+meetstat time,
+room varchar(200),
+fid int,
+primary key(cname),
+foreign key(fid) references faculty(fid));
+
+create table enrolled(
+snum int,
+cname varchar(200),
+foreign key(snum) references student(snum),
+foreign key(cname) references class(cname));
+
+create table faculty(
+fid int,
+fname varchar(200),
+deptid int,
+primary key (fid));
+
+insert into student(snum,sname,major,lvl,age) values
+('1','john','CS','sr','19'),
+('2','steve','CS','jr','20'),
+('3','dan','CV','sr','20'),
+('4','brandon','CS','jr','20'),
+('5','matt','CS','jr','20'),
+('6','jamie','CS','sr','21');
+
+insert into faculty(fid,fname,deptid) values
+('11','harish','1000'),
+('12','MV','1000'),
+('13','david','1001'),
+('14','noah','1002'),
+('15','timothy','1000');
+
+insert into class(cname,meetstat,room,fid) values
+('Class1','12/11/15 10:15:16','R1','14'),
+('Class10','12/11/15 10:15:16','R128','14'),
+('Class2','12/11/15 10:15:20','R2','12'),
+('Class3','12/11/15 10:15:25','R3','11'),
+('Class4','12/11/15 20:15:20','R4','14'),
+('Class5','12/11/15 20:15:20','R3','15'),
+('Class6','12/11/15 13:20:20','R2','14'),
+('Class7','12/11/15 10:10:10','R3','14');
+
+insert into enrolled(snum,cname) values
+('1','class1'),
+('2','class1'),
+('3','class3'),
+('4','class3'),
+('5','class4');
+i. Find the names of all Juniors (level = JR) who are enrolled in a class taught by “name”
+select distinct s.sname
+from student s,enrolled e,faculty f,class c
+where s.snum=e.snum and e.cname=c.cname and f.fid=c.fid and f.fname='noah' and s.lvl='jr';
+ii.Find the names of all classes that either meet in room R128 or have five or more
+Students enrolled.
+select cname from class c
+where c.room='R128'
+or c.cname in (select e.cname from enrolled e,class
+where c.cname=e.cname group by e.cname having count(*)>=5);
+iii.Find the names of all students who are enrolled in two classes that meet at the same
+time.
+select s.snum from student s 
+where s.snum in (select e1.snum from enrolled e1,enrolled e2,class c1,class c2
+where e1.snum=e2.snum and e1.cname<>e2.cname and e1.cname=c1.cname and e2.cname=c2.cname
+and c1.meetstat=c2.meetstat);
+iv.Find the names of faculty members who teach in every room in which some class is
+taught.
+select  f.fname from faculty f 
+where not exists (
+select distinct c.room from class c 
+      where c.room not in (
+                select c1.room from class c1 where c1.fid=f.fid
+                )
+	);
+v.Find the names of faculty members for whom the combined enrollment of the courses
+that they teach is less than five.
+select  distinct f.fname from faculty f
+where 5>(select count(e.snum) from enrolled e,class c
+where c.cname=e.cname and c.fid=f.fid);
+vi.Find the names of students who are not enrolled in any class.
+select distinct s.snum from student s
+where s.snum not in (select e.snum from enrolled e);
+vii.For each age value that appears in Students, find the level value that appears most
+select s.age,s.lvl from student s
+group by s.age,s.lvl
+having s.lvl in(select s1.lvl from student s1
+where s1.age=s.age
+group by s1.lvl,s1.age
+having count(*)>=all(select count(*)from student s2
+where s1.age=s2.age
+group by s2.lvl,s2.age))
