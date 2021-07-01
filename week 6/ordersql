@@ -1,0 +1,94 @@
+create schema orderdb;
+create table salesman(
+salesmanid int,
+name varchar(200),
+city varchar(200),
+commision char(50),
+primary key(salesmanid)
+);
+
+create table customer(
+customerid int,
+cust_name varchar(200),
+city varchar(200),
+grade int,
+salesmanid int,
+primary key(customerid),
+foreign key (salesmanid) references salesman(salesmanid)
+);
+
+ create table orders(
+ orderno int,
+ purch_amt int,
+ orderdate date,
+ customerid int,
+ salesmanid int,
+ primary key(orderno),
+ foreign key (salesmanid) references salesman(salesmanid),
+ foreign key (customerid) references customer(customerid)
+ );
+ 
+ insert into salesman(salesmanid,name,city,commision) values
+ ('1000','john','bangalore','25%'),
+ ('2000','ravi','bangalore','20%'),
+ ('3000','kumar','mysore','15%'),
+ ('4000','smith','dehli','30%'),
+ ('5000','harsha','hyderabad','15%');
+ 
+ insert into customer(customerid,cust_name,city,grade,salesmanid) values
+ ('10','preethi','bangalore','100','1000'),
+ ('11','vivek','mangalore','300','1000'),
+ ('12','bhaskar','chennai','400','2000'),
+ ('13','chetan','bangalore','200','2000'),
+ ('14','mamatha','bangalore','400','3000');
+ 
+ insert into orders(orderno,purch_amt,orderdate,customerid,salesmanid)values
+ ('50','5000','04-05-17','10','1000'),
+ ('51','450','20-01-17','10','2000'),
+ ('52','1000','23-02-17','13','2000'),
+ ('53','3500','13-04-17','14','3000'),
+ ('54','550','19-03-17','12','2000');
+  
+1. Count the customers with grades above Bangalore’s average.      
+SELECT grade, count(DISTINCT customerid) 
+FROM customer
+GROUP BY grade 
+HAVING grade > (SELECT AVG(grade) 
+FROM customer
+WHERE city='bangalore');
+
+
+2. Find the name and numbers of all salesmen who had more than one customer. 
+SELECT salesmanid, NAME 
+FROM salesman a 
+WHERE 1 < (SELECT count(*) 
+FROM customer 
+WHERE salesmanid=a.salesmanid);
+
+
+3. List all salesmen and indicate those who have and don’t have customers in their cities (Use UNION operation.)
+SELECT salesman.salesmanid, NAME, cust_name, commision 
+FROM salesman, customer
+WHERE salesman.city = customer.city 
+UNION 
+SELECT salesmanid, name, 'no customer', commision 
+FROM salesman 
+WHERE NOT city = ANY 
+(SELECT city 
+FROM customer) 
+ORDER BY 2 DESC;
+
+
+4. Create a view that finds the salesman who has the customer with the highest order of a day. 
+CREATE VIEW highsalesman AS
+SELECT b.orderdate, a.salesmanid, a.name 
+FROM salesman a, orders b
+WHERE a.salesmanid = b.salesmanid 
+AND b.purch_amt=(SELECT max(purch_amt) 
+FROM orders c 
+WHERE c.orderdate = b.orderdate);
+SELECT * FROM highsalesman;
+
+Demonstrate the DELETE operation by removing salesman with id 1000. All his orders must also be deleted
+DELETE FROM salesman 
+WHERE salesmanid=1000;
